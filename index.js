@@ -5,7 +5,7 @@ const MongoClient = require('mongodb').MongoClient
 const Raven = require('raven');
 Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02cf8b724@sentry.io/187248').install();
 
-const url = 'mongodb://localhost:27017/eddn';
+const url = 'mongodb://localhost:54373/eddn';
 sock.connect('tcp://eddn.edcd.io:9500');
 console.log('Worker connected to port 9500');
 
