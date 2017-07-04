@@ -15,6 +15,7 @@ sock.on('message', topic => {
 	zlib.inflate(topic, (err, res) => {
 		if (err) {
 			console.error(err);
+			Raven.captureException(err);
 		}
 		const message = JSON.parse(res);
 		if (message.message.event) {
@@ -23,13 +24,15 @@ sock.on('message', topic => {
 					message.message.uploader = message.header.uploaderID.toString();
 					const collection = db.collection('eddnHistory');
 					collection.insertOne(message.message).then(result => {
-						console.log('inserted');
+						console.log('inserted ' + message.message.event + ' from: ' + message.message.uploader);
 						db.close();
 					}).catch(err => {
 						console.error(err);
+						Raven.captureException(err);
 						db.close();
 					})
 				}).catch(err => {
+					Raven.captureException(err);
 					console.error(err);
 				});
 		}
