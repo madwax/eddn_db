@@ -35,7 +35,7 @@ sock.on('message', topic => {
 		if (message.message.event) {
 			connectDB()
 				.then(db => {
-					message.message.uploader = message.header.uploaderID.toString();
+					message.message.uploader = message.header.uploaderID.toString().toLowerCase();
 					message.message.unixTimestamp = moment(message.message.timestamp).valueOf();
 					message.message.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
 					const collection = db.collection('eddnHistory');
@@ -71,7 +71,7 @@ app.get('/', (req, res, next) => {
 });
 
 app.get('/api/cmdr/:cmdr', (req, res, next) => {
-	const cmdr = req.params.cmdr;
+	const cmdr = req.params.cmdr.toLowerCase();
 	const page = req.query.page;
 	if (!page) {
 		console.log('No page query, sending first 50');
