@@ -79,7 +79,7 @@ app.get('/api/cmdr/:cmdr', (req, res, next) => {
 	connectDB()
 		.then(db => {
 			const collection = db.collection('eddnHistory');
-			collection.find({uploader: cmdr}).toArray((err, docs) => {
+			collection.find({uploader: cmdr}).sort({ unixTimestamp: -1 }).toArray((err, docs) => {
 				if (err) {
 					console.error(err);
 					Raven.captureException(err);
@@ -104,7 +104,7 @@ app.get('/api/system/:system', (req, res, next) => {
 	connectDB()
 		.then(db => {
 			const collection = db.collection('eddnHistory');
-			collection.find({StarSystem: system}).toArray((err, docs) => {
+			collection.find({StarSystem: system}).sort({ unixTimestamp: -1 }).toArray((err, docs) => {
 				if (err) {
 					console.error(err);
 					Raven.captureException(err);
@@ -129,7 +129,7 @@ app.get('/api/station/:station', (req, res, next) => {
 	connectDB()
 		.then(db => {
 			const collection = db.collection('eddnHistory');
-			collection.find({StationName: station}).toArray((err, docs) => {
+			collection.find({StationName: station}).sort({ unixTimestamp: -1 }).toArray((err, docs) => {
 				if (err) {
 					console.error(err);
 					Raven.captureException(err);
