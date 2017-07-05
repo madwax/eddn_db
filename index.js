@@ -24,7 +24,8 @@ sock.on('message', topic => {
 			connectDB()
 				.then(db => {
 					message.message.uploader = message.header.uploaderID.toString();
-					message.message.unixTimestamp = moment(message.message.timestamp).valueOf()
+					message.message.unixTimestamp = moment(message.message.timestamp).valueOf();
+					message.message.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
 					const collection = db.collection('eddnHistory');
 					collection.insertOne(message.message).then(result => {
 						console.log('inserted ' + message.message.event + ' from: ' + message.message.uploader);
