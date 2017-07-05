@@ -6,8 +6,17 @@ const MongoClient = require('mongodb').MongoClient
 const Raven = require('raven');
 const moment = require('moment');
 const paginate = require("paginate-array");
+const RateLimit = require('express-rate-limit');
 
 const app = express();
+
+const apiLimiter = new RateLimit({
+  windowMs: 15*60*1000,
+  max: 75,
+  delayMs: 0,
+  headers: true
+});
+app.use('/api/', apiLimiter);
 Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02cf8b724@sentry.io/187248').install();
 
 const url = 'mongodb://localhost:54373/eddn';
@@ -61,7 +70,7 @@ app.get('/', (req, res, next) => {
 	res.send('hello');
 });
 
-app.get('/cmdr/:cmdr', (req, res, next) => {
+app.get('/api/cmdr/:cmdr', (req, res, next) => {
 	const cmdr = req.params.cmdr;
 	const page = req.query.page;
 	if (!page) {
@@ -86,7 +95,7 @@ app.get('/cmdr/:cmdr', (req, res, next) => {
 		})
 });
 
-app.get('/system/:system', (req, res, next) => {
+app.get('/api/system/:system', (req, res, next) => {
 	const system = req.params.system;
 	const page = req.query.page;
 	if (!page) {
@@ -111,7 +120,7 @@ app.get('/system/:system', (req, res, next) => {
 		})
 });
 
-app.get('/station/:station', (req, res, next) => {
+app.get('/api/station/:station', (req, res, next) => {
 	const station = req.params.cmdr;
 	const page = req.query.page;
 	if (!page) {
