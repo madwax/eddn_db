@@ -683,6 +683,10 @@ is-buffer@^1.1.5:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/is-buffer/-/is-buffer-1.1.5.tgz#1f3b26ef613b214b88cbca23cc6c01d87961eecc"
 
+is-dev@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/is-dev/-/is-dev-0.1.4.tgz#01af59201674658cff67e6ab78fbfe5be9a34ba6"
+
 is-dotfile@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/is-dotfile/-/is-dotfile-1.0.3.tgz#a6a2f32ffd2dfb04f5ca25ecd0f6b83cf798a1e1"
