@@ -8,9 +8,11 @@
   "license": "MIT",
   "dependencies": {
     "collect.js": "^3.0.46",
+    "express": "^4.15.3",
     "moment": "^2.18.1",
     "mongodb": "^2.2.29",
     "nodemon": "^1.11.0",
+    "paginate-array": "^2.0.0",
     "raven": "^2.1.0",
     "zeromq": "^4.5.0"
   }
