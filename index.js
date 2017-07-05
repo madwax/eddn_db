@@ -3,6 +3,8 @@ const zmq = require('zeromq');
 const sock = zmq.socket('sub');
 const MongoClient = require('mongodb').MongoClient
 const Raven = require('raven');
+const moment = require('moment');
+
 Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02cf8b724@sentry.io/187248').install();
 
 const url = 'mongodb://localhost:54373/eddn';
@@ -22,6 +24,7 @@ sock.on('message', topic => {
 			connectDB()
 				.then(db => {
 					message.message.uploader = message.header.uploaderID.toString();
+					message.message.unixTimestamp = moment(message.message.timestamp).valueOf()
 					const collection = db.collection('eddnHistory');
 					collection.insertOne(message.message).then(result => {
 						console.log('inserted ' + message.message.event + ' from: ' + message.message.uploader);
