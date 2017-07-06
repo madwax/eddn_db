@@ -1,5 +1,5 @@
 const zlib = require('zlib');
-const zmq = require('zeromq');
+const {connectDB} = require('./utils');
 const express = require('express');
 const MongoClient = require('mongodb').MongoClient;
 const Raven = require('raven');
@@ -8,8 +8,7 @@ const paginate = require('paginate-array');
 const RateLimit = require('express-rate-limit');
 const isDev = require('is-dev');
 
-const sock = zmq.socket('sub');
-
+require('./eddn');
 const app = express();
 
 const apiLimiter = new RateLimit({
@@ -21,55 +20,11 @@ const apiLimiter = new RateLimit({
 if (!isDev) {
 	app.use('/api/', apiLimiter);
 }
-Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02cf8b724@sentry.io/187248').install();
+Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02cf8b724@sentry.io/187248', {
+	autoBreadcrumbs: true,
+	captureUnhandledRejections: true
+}).install();
 
-const url = 'mongodb://localhost:54373/eddn';
-sock.connect('tcp://eddn.edcd.io:9500');
-console.log('Worker connected to port 9500');
-
-sock.subscribe('');
-
-sock.on('message', topic => {
-	zlib.inflate(topic, (err, res) => {
-		if (err) {
-			console.error(err);
-			Raven.captureException(err);
-		}
-		const message = JSON.parse(res);
-		if (message.message.event) {
-			connectDB()
-				.then(db => {
-					message.message.uploader = message.header.uploaderID.toString().toLowerCase();
-					message.message.unixTimestamp = moment(message.message.timestamp).valueOf();
-					message.message.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
-					const collection = db.collection('eddnHistory');
-					collection.insertOne(message.message).then(() => {
-						console.log('inserted ' + message.message.event + ' from: ' + message.message.uploader);
-						db.close();
-					}).catch(err => {
-						console.error(err);
-						Raven.captureException(err);
-						db.close();
-					});
-				}).catch(err => {
-					Raven.captureException(err);
-					console.error(err);
-				});
-		}
-	});
-});
-
-function connectDB() {
-	return new Promise((resolve, reject) => {
-		MongoClient.connect(url, (err, db) => {
-			if (err) {
-				reject(err);
-			} else {
-				resolve(db);
-			}
-		});
-	});
-}
 app.get('/', (req, res) => {
 	res.send('hello');
 });
@@ -93,9 +48,9 @@ app.get('/api/cmdr/:cmdr', (req, res) => {
 				db.close();
 			});
 		}).catch(err => {
-			Raven.captureException(err);
-			console.error(err);
-		});
+		Raven.captureException(err);
+		console.error(err);
+	});
 });
 
 app.get('/api/system/:system', (req, res) => {
@@ -117,9 +72,9 @@ app.get('/api/system/:system', (req, res) => {
 				db.close();
 			});
 		}).catch(err => {
-			Raven.captureException(err);
-			console.error(err);
-		});
+		Raven.captureException(err);
+		console.error(err);
+	});
 });
 
 app.get('/api/station/:station', (req, res) => {
@@ -141,10 +96,37 @@ app.get('/api/station/:station', (req, res) => {
 				db.close();
 			});
 		}).catch(err => {
-			Raven.captureException(err);
-			console.error(err);
-		});
+		Raven.captureException(err);
+		console.error(err);
+	});
 });
-app.listen(5125, () => {
+
+app.get('/api/recent', (req, res) => {
+	connectDB()
+		.then(db => {
+			const collection = db.collection('eddnHistory');
+			collection.find().limit(25).sort({_id:-1}).toArray((err, docs) => {
+				if (err) {
+					console.error(err);
+					Raven.captureException(err);
+				}
+				let newdocs = {};
+				newdocs.currentPage = 1;
+				newdocs.perPage = 25;
+				newdocs.total = docs.length;
+				newdocs.totaPages = 1;
+				newdocs.data = docs;
+				docs = null;
+				res.json(newdocs);
+				newdocs = null;
+				db.close();
+			});
+		}).catch(err => {
+		Raven.captureException(err);
+		console.error(err);
+	});
+});
+
+app.listen(3000, () => {
 	console.log('Server listening on 5125');
 });
