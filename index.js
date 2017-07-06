@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
 
 app.get('/api/cmdr/:cmdr', (req, res) => {
 	const cmdr = req.params.cmdr.toLowerCase();
-	const page = req.query.page || 1;
+	const page = parseInt(req.query.page) || 1;
 	if (!page) {
 		console.log('No page query, sending first 25');
 	}
@@ -60,7 +60,7 @@ app.get('/api/cmdr/:cmdr', (req, res) => {
 
 app.get('/api/system/:system', (req, res) => {
 	const system = req.params.system;
-	const page = req.query.page || 1;
+	const page = parseInt(req.query.page) || 1;
 	if (!page) {
 		console.log('No page query, sending first 25');
 	}
@@ -89,7 +89,7 @@ app.get('/api/system/:system', (req, res) => {
 
 app.get('/api/station/:station', (req, res) => {
 	const station = req.params.station;
-	const page = req.query.page || 1;
+	const page = parseInt(req.query.page) || 1;
 	if (!page) {
 		console.log('No page query, sending first 25');
 	}
