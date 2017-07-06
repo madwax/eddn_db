@@ -31,20 +31,25 @@ app.get('/', (req, res) => {
 
 app.get('/api/cmdr/:cmdr', (req, res) => {
 	const cmdr = req.params.cmdr.toLowerCase();
-	const page = req.query.page;
+	const page = req.query.page || 1;
 	if (!page) {
 		console.log('No page query, sending first 25');
 	}
 	connectDB()
 		.then(db => {
 			const collection = db.collection('eddnHistory');
-			collection.find({uploader: cmdr}).sort({unixTimestamp: -1}).toArray((err, docs) => {
+			collection.find({uploader: cmdr}).skip((page - 1) * 10).limit(25).sort({unixTimestamp: -1}).toArray((err, docs) => {
 				if (err) {
 					console.error(err);
 					Raven.captureException(err);
 				}
-				const paginated = paginate(docs, page || 1, 25);
-				res.json(paginated);
+				let newdocs = {};
+				newdocs.currentPage = page;
+				newdocs.perPage = 25;
+				newdocs.data = docs;
+				docs = null;
+				res.json(newdocs);
+				newdocs = null;
 				db.close();
 			});
 		}).catch(err => {
@@ -55,20 +60,25 @@ app.get('/api/cmdr/:cmdr', (req, res) => {
 
 app.get('/api/system/:system', (req, res) => {
 	const system = req.params.system;
-	const page = req.query.page;
+	const page = req.query.page || 1;
 	if (!page) {
 		console.log('No page query, sending first 25');
 	}
 	connectDB()
 		.then(db => {
 			const collection = db.collection('eddnHistory');
-			collection.find({StarSystem: system}).sort({unixTimestamp: -1}).toArray((err, docs) => {
+			collection.find({StarSystem: system}).skip((page - 1) * 10).limit(25).sort({unixTimestamp: -1}).toArray((err, docs) => {
 				if (err) {
 					console.error(err);
 					Raven.captureException(err);
 				}
-				const paginated = paginate(docs, page || 1, 25);
-				res.json(paginated);
+				let newdocs = {};
+				newdocs.currentPage = page;
+				newdocs.perPage = 25;
+				newdocs.data = docs;
+				docs = null;
+				res.json(newdocs);
+				newdocs = null;
 				db.close();
 			});
 		}).catch(err => {
@@ -78,21 +88,26 @@ app.get('/api/system/:system', (req, res) => {
 });
 
 app.get('/api/station/:station', (req, res) => {
-	const station = req.params.cmdr;
-	const page = req.query.page;
+	const station = req.params.station;
+	const page = req.query.page || 1;
 	if (!page) {
-		console.log('No page query, sending 50');
+		console.log('No page query, sending first 25');
 	}
 	connectDB()
 		.then(db => {
 			const collection = db.collection('eddnHistory');
-			collection.find({StationName: station}).sort({unixTimestamp: -1}).toArray((err, docs) => {
+			collection.find({StationName: station}).skip((page - 1) * 25).limit(25).sort({unixTimestamp: -1}).toArray((err, docs) => {
 				if (err) {
 					console.error(err);
 					Raven.captureException(err);
 				}
-				const paginated = paginate(docs, page || 1, 25);
-				res.json(paginated);
+				let newdocs = {};
+				newdocs.currentPage = page;
+				newdocs.perPage = 25;
+				newdocs.data = docs;
+				docs = null;
+				res.json(newdocs);
+				newdocs = null;
 				db.close();
 			});
 		}).catch(err => {
@@ -105,7 +120,7 @@ app.get('/api/recent', (req, res) => {
 	connectDB()
 		.then(db => {
 			const collection = db.collection('eddnHistory');
-			collection.find().limit(25).sort({_id:-1}).toArray((err, docs) => {
+			collection.find().limit(25).sort({_id: -1}).toArray((err, docs) => {
 				if (err) {
 					console.error(err);
 					Raven.captureException(err);
