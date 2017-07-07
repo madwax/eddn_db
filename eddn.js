@@ -13,10 +13,18 @@ Raven.config('https://7c3174b16e384349bbf294978a65fb0c:c61b0700a2894a03a46343a02
 
 sock.connect('tcp://eddn.edcd.io:9500');
 console.log('Worker connected to port 9500');
+connectDB()
+	.then(db => {
+		sock.subscribe('');
+		sock.on('message', topic => {
+			onMessage(topic, db);
+		});
+	}).catch(err => {
+	Raven.captureException(err);
+	console.error(err);
+});
 
-sock.subscribe('');
-
-sock.on('message', topic => {
+function onMessage(topic, db) {
 	zlib.inflate(topic, (err, res) => {
 		if (err) {
 			Raven.context(() => {
@@ -30,34 +38,25 @@ sock.on('message', topic => {
 		}
 		let message = JSON.parse(res);
 		if (message.message.event) {
-			connectDB()
-				.then(db => {
-					message.message.uploader = message.header.uploaderID.toString().toLowerCase();
-					message.message.unixTimestamp = moment(message.message.timestamp).valueOf();
-					message.message.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
-					const collection = db.collection('eddnHistory');
-					collection.insertOne(message.message).then(() => {
-						console.log('inserted ' + message.message.event + ' from: ' + message.message.uploader);
-						message = null;
-						db.close();
-					}).catch(err => {
-						Raven.context(() => {
-							Raven.captureBreadcrumb({
-								message: "Insert failed",
-								file: "eddn.js",
-								data: message
-							});
-							Raven.captureException(err);
-							console.error(err);
-							message = null;
-							db.close();
-						});
-					});
-				}).catch(err => {
-				Raven.captureException(err);
+			message.message.uploader = message.header.uploaderID.toString().toLowerCase();
+			message.message.unixTimestamp = moment(message.message.timestamp).valueOf();
+			message.message.software = `${message.header.softwareName}@${message.header.softwareVersion}`;
+			const collection = db.collection('eddnHistory');
+			collection.insertOne(message.message).then(() => {
+				console.log('inserted ' + message.message.event + ' from: ' + message.message.uploader);
 				message = null;
-				console.error(err);
+			}).catch(err => {
+				Raven.context(() => {
+					Raven.captureBreadcrumb({
+						message: "Insert failed",
+						file: "eddn.js",
+						data: message
+					});
+					Raven.captureException(err);
+					console.error(err);
+					message = null;
+				});
 			});
 		}
 	});
-});
+}
